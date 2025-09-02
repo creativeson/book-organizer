@@ -1,6 +1,5 @@
 package com.example.starterbookorganizer
 
-
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
@@ -15,24 +14,12 @@ import android.widget.ListView
 import android.widget.Spinner
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import com.example.starterbookorganizer.domain.model.Book
+import com.example.starterbookorganizer.presentation.add_book.AddBookActivity
+import com.example.starterbookorganizer.presentation.add_book.Category
 
 const val REQUEST_CODE_ADD_BOOK = 1001
-
 class MainActivity : AppCompatActivity() {
-
-    enum class Category {
-        READ,
-        READING,
-        WISHLIST
-    }
-    data class Book(
-        val title: String,
-        val author: String,
-        val publicationYear: Int,
-        val isbn: String,
-        val genre: String,
-        val status: Category
-    )
 
     inner class BookAdapter(context: Context, private val books: List<Book>) : ArrayAdapter<Book>(context, 0, books) {
         override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
@@ -56,7 +43,7 @@ class MainActivity : AppCompatActivity() {
     }
     private lateinit var categorySpinner: Spinner
     private lateinit var bookListView: ListView
-    private lateinit var books: MutableList<Book>  // Book is a data class you should define
+    private lateinit var books: MutableList<Book>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -66,8 +53,6 @@ class MainActivity : AppCompatActivity() {
         categorySpinner = findViewById(R.id.categorySpinner)
         bookListView = findViewById(R.id.bookListView)
 
-//        val categories = listOf("READ", "READING", "WISHLIST")
-//        val status = listOf("READ", "READING", "WISHLIST")
         val categories = listOf(Category.READING, Category.READ, Category.WISHLIST)
         val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, categories)
         categorySpinner.adapter = adapter
@@ -115,14 +100,19 @@ class MainActivity : AppCompatActivity() {
                 if (it.hasExtra("title")) {
                     val title = it.getStringExtra("title")
                     val author = it.getStringExtra("author")
-                    val publicationYear = it.getIntExtra("publicationYear", -1)
+                    val publicationYear = it.getIntExtra("publicationYear", 0)
                     val isbn = it.getStringExtra("isbn")
                     val genre = it.getStringExtra("genre")
-
                     val statusName = it.getStringExtra("status")
-                    val status = Category.valueOf(statusName!!)
 
-                    val newBook = Book(title!!, author!!, publicationYear, isbn!!, genre!!, status)
+                    val newBook = Book(
+                        title,
+                        author,
+                        publicationYear,
+                        isbn,
+                        genre,
+                        Category.fromName(statusName)
+                    ).toEntity()
                     books.add(newBook)
 
                     // Notify the ListView's adapter of the data change
